@@ -588,6 +588,11 @@ progress {
   margin-bottom: 0;
 }
 
+.delete-icon {
+    padding-left: 5%;
+    font-size: 2rem;
+}
+
 .blockquote-footer {
   margin-top: -1rem;
   margin-bottom: 1rem;
