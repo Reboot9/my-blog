@@ -21,9 +21,11 @@
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">
                      <!-- New Post -->
-        <div class="clearfix">
-          <a class="btn btn-primary float-right" href="{{url_for('create_post')}}">Create New Post</a>
-        </div>
+        {% if current_user.id == 1 %}
+            <div class="clearfix">
+              <a class="btn btn-primary float-right" href="{{url_for('create_post')}}">Create New Post</a>
+            </div>
+        {% endif %}
                     <!-- Post preview-->
                     {% for post in all_posts %}
                     <div class="post-preview">
@@ -36,9 +38,12 @@
                             </h3>
                         </a>
                         <p class="post-meta">
-                            Posted by <a href="#">{{ post.author }}</a>
+                            Posted by <a href="#">{{ post.author.name }}</a>
                             on {{ post.date }}
+                            <!-- If user's id is 1, they can see the button-->
+                            {% if current_user.id == 1 %}
                             <a class="delete-icon" href="{{ url_for('delete_post', post_id=post.id) }}">✘</a>
+                            {% endif %}
                         </p>
                     </div>
                     <!-- Divider-->
