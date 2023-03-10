@@ -25,9 +25,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config["SQLALCHEMY_ECHO"] = True
 db = SQLAlchemy(app)
 
-
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+gravatar = Gravatar(app, size=50, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False,
+                    base_url=None)
 
 
 class BlogPost(db.Model):
@@ -42,6 +44,8 @@ class BlogPost(db.Model):
     body = db.Column(db.Text, nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
 
+    comments = relationship("Comments", back_populates="parent_post")
+
 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
@@ -53,7 +57,18 @@ class User(UserMixin, db.Model):
     # This will act like a List of BlogPost objects attached to each User.
     # The "author" refers to the author property in the BlogPost class.
     posts = relationship("BlogPost", back_populates="author")
+    comments = relationship("Comments", back_populates="comment_author")
 
+
+class Comments(db.Model):
+    __tablename__ = "comments"
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    comment_author = relationship("User", back_populates="comments")
+
+    post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
+    parent_post = relationship("BlogPost", back_populates="comments")
 
 
 with app.app_context():
@@ -83,11 +98,13 @@ def strip_invalid_html(content):
 
 def admin_only(func):
     """My superuser decorator to make sure user with id=1 is admin"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if current_user.id != 1:
             return abort(403)
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -127,11 +144,25 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/post/<int:post_id>")
+@app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
     requested_post = BlogPost.query.get(post_id)
+    comment_form = myforms.CommentForm()
 
-    return render_template("post.html", post=requested_post)
+    if comment_form.validate_on_submit():
+        new_comment = Comments(
+            text=strip_invalid_html(comment_form.comment_text.data),
+            comment_author=current_user,
+            parent_post=requested_post
+        )
+
+        db.session.add(new_comment)
+        db.session.commit()
+        comment_form.comment_text.data = ""  # Clear comment text field after saving it in new_comment variable
+
+        return redirect(url_for('show_post', post_id=post_id))
+
+    return render_template("post.html", post=requested_post, form=comment_form)
 
 
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])

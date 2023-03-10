@@ -35,3 +35,8 @@ class LoginForm(FlaskForm):
         validators.Length(min=4, message=u"Password has to be at least 4 characters long"), DataRequired()
     ])
     submit = SubmitField(label="Log in")
+
+
+class CommentForm(FlaskForm):
+    comment_text = CKEditorField("Comment", validators=[DataRequired()])
+    submit = SubmitField(label="Submit Comment")

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% block title %} {{ post.title }} {% endblock %}
 
 {% block content %}
@@ -27,15 +28,42 @@
             <div class="col-md-10 col-lg-8 col-xl-7"></div>
             <!-- Safe filter applied to the post.body-->
             {{ post.body|safe }}
-            {% if current_user.id == 1 %}
             <hr>
+            {% if current_user.id == 1 %}
             <div class="clearfix">
                 <a class="btn btn-primary float-right" href="{{url_for('edit_post', post_id=post.id)}}">Edit Post</a>
-                 <a class="delete-icon" href="{{ url_for('delete_post', post_id=post.id) }}">✘</a>
+                <a class="delete-icon" href="{{ url_for('delete_post', post_id=post.id) }}">✘</a>
             </div>
+            <hr>
             {% endif %}
 
         </div>
+    </div>
+    <!-- Comments Area -->
+
+    <div class="col-lg-8 col-md-10 mx-auto comment">
+
+    <!-- Load CKEditor-->
+        {% if current_user.is_authenticated %}
+    {{ ckeditor.load() }}
+
+    {{ ckeditor.config(name='comment-text') }}
+    {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        {% endif %}
+        {% for commenter in post.comments %}
+        <ul class="commentList">
+            <li>
+                <div class="commenterImage">
+                    <img src="{{ commenter.comment_author.email|gravatar }}"/>
+                </div>
+                <span class="text-muted">{{ commenter.comment_author.name }}</span>
+                <div class="commentText">
+                    {{ commenter.text|safe }}
+
+                </div>
+            </li>
+        </ul>
+        {% endfor %}
     </div>
 </article>
 {% endblock %}

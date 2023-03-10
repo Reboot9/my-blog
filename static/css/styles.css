@@ -176,6 +176,7 @@ address {
 ol,
 ul {
   padding-left: 2rem;
+  list-style-type: None;
 }
 
 ol,
@@ -614,6 +615,15 @@ progress {
   border: 1px solid #dee2e6;
   max-width: 100%;
   height: auto;
+}
+
+.commenterImage {
+    padding: 1% 0;
+    display: inline-block;
+}
+
+.commentText p {
+    margin: 1% 0 3%;
 }
 
 .figure {
